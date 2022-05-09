@@ -1,0 +1,59 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Semrush\HomeTest\Tests\Network;
+
+use PHPUnit\Framework\TestCase;
+use Semrush\HomeTest\Network\UrlIdGenerator;
+use Semrush\HomeTest\Network\NewPhpUrlIdGenerator;
+
+
+final class NewPhpUrlIdGeneratorTest extends TestCase
+{
+    /**
+     * @test
+     */
+    public function instantiation_works(): void
+    {
+        $generator = new NewPhpUrlIdGenerator();
+
+        self::assertInstanceOf(NewPhpUrlIdGenerator::class, $generator);
+        self::assertInstanceOf(UrlIdGenerator::class, $generator);
+    }
+
+    /**
+     * @return mixed[]
+     */
+    public function provideGeneratorExpectations(): array
+    {
+        $providers = [];
+
+        $file = \fopen(__DIR__ . '/../Resources/url_ids.txt', 'r');
+
+        if (false !== $file) {
+            while (($line = \fgets($file)) !== false) {
+                $providers[] = \explode("\t|\t", \trim($line));
+            }
+
+            \fclose($file);
+        }
+
+        return $providers;
+    }
+
+    /**
+     * @test
+     * @dataProvider provideGeneratorExpectations
+     */
+    public function generate_withValidUrl_returnsUrlId_newImplementation(string $url, string $expectedId): void
+    {
+        $generatedId = (new NewPhpUrlIdGenerator())->generate($url);
+
+        self::assertSame(
+            $expectedId,
+            $generatedId,
+            \sprintf('Expected URL ID generator to return ID [%s], got [%s] instead.', $expectedId, $generatedId)
+        );
+    }
+}
